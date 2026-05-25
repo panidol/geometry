@@ -1,0 +1,1033 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>พื้นฐานทางเรขาคณิต ม.1</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+    <style>
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background-color: #f0fdfa; /* Tailwind teal-50 */
+            color: #0f766e; /* Tailwind teal-700 */
+        }
+        .canvas-container {
+            border: 2px solid #5eead4; /* Tailwind teal-300 */
+            border-radius: 0.5rem;
+            background-color: white;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            overflow: hidden;
+            touch-action: none; /* Prevent scrolling when interacting with canvas */
+        }
+        .tab-btn {
+            transition: all 0.2s ease;
+        }
+        .tab-btn.active {
+            background-color: #0d9488; /* Tailwind teal-600 */
+            color: white;
+            font-weight: 600;
+        }
+        .tab-btn:hover:not(.active) {
+            background-color: #ccfbf1; /* Tailwind teal-100 */
+        }
+        .point {
+            fill: #db2777; /* Tailwind pink-600 */
+        }
+        .line {
+            stroke: #2563eb; /* Tailwind blue-600 */
+            stroke-width: 3;
+            stroke-linecap: round;
+        }
+        .arrow {
+            fill: #2563eb;
+        }
+        .label {
+            font-family: 'Sarabun', sans-serif;
+            font-size: 16px;
+            font-weight: bold;
+            fill: #1e293b; /* Tailwind slate-800 */
+            user-select: none;
+        }
+        .angle-arc {
+            fill: rgba(234, 179, 8, 0.3); /* Tailwind yellow-500 with opacity */
+            stroke: #eab308; /* Tailwind yellow-500 */
+            stroke-width: 2;
+        }
+        .draggable-point {
+            fill: #ef4444; /* Tailwind red-500 */
+            cursor: pointer;
+        }
+        .draggable-point:hover {
+            fill: #dc2626; /* Tailwind red-600 */
+            r: 10;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <div class="max-w-4xl mx-auto">
+        <header class="text-center mb-8">
+            <h1 class="text-3xl md:text-4xl font-bold text-teal-800 mb-2">พื้นฐานทางเรขาคณิต (ม.1)</h1>
+            <p class="text-teal-600 text-lg">เรียนรู้เรื่อง จุด เส้นตรง ส่วนของเส้นตรง รังสี และมุม</p>
+        </header>
+
+        <main class="bg-white rounded-xl shadow-lg p-6 mb-8">
+            <!-- Tabs Navigation -->
+            <div class="flex flex-wrap border-b border-teal-200 mb-6 pb-2 gap-2" id="tabs">
+                <button class="tab-btn active px-4 py-2 rounded-t-lg border-teal-200 text-teal-700 bg-teal-50 hover:bg-teal-100 focus:outline-none" data-target="point">จุด</button>
+                <button class="tab-btn px-4 py-2 rounded-t-lg text-teal-700 hover:bg-teal-50 focus:outline-none" data-target="line">เส้นตรง</button>
+                <button class="tab-btn px-4 py-2 rounded-t-lg text-teal-700 hover:bg-teal-50 focus:outline-none" data-target="segment">ส่วนของเส้นตรง</button>
+                <button class="tab-btn px-4 py-2 rounded-t-lg text-teal-700 hover:bg-teal-50 focus:outline-none" data-target="ray">รังสี</button>
+                <button class="tab-btn px-4 py-2 rounded-t-lg text-teal-700 hover:bg-teal-50 focus:outline-none" data-target="angle">มุม (Interactive)</button>
+                <button class="tab-btn px-4 py-2 rounded-t-lg text-amber-700 hover:bg-amber-50 focus:outline-none font-bold border-b-2 border-transparent" data-target="sandbox">✨ สร้างภาพอิสระ</button>
+            </div>
+
+            <!-- Content Area -->
+            <div id="content-area">
+                <!-- Point Content -->
+                <div id="content-point" class="content-section">
+                    <h2 class="text-2xl font-bold mb-4 text-teal-700">จุด (Point)</h2>
+                    <p class="mb-4 text-gray-700 leading-relaxed">
+                        <strong>จุด</strong> ใช้สำหรับแสดงตำแหน่ง ไม่มีขนาด ไม่มีความกว้าง ไม่มีความยาว หรือความหนา 
+                        ในการเขียนสัญลักษณ์ เรามักใช้จุดไข่ปลา หรือจุดกลมทึบ และใช้ตัวอักษรพิมพ์ใหญ่ภาษาอังกฤษ (หรืออักษรไทย) ตั้งชื่อจุด
+                    </p>
+                    <div class="flex justify-between items-center mb-2 bg-rose-50 p-2 rounded-lg border border-rose-100">
+                        <span class="text-rose-600 text-sm font-semibold">👆 คลิก/แตะ พื้นที่ว่างเพื่อสร้างจุด หรือลากจุดที่มีอยู่เพื่อขยับ</span>
+                        <button id="clear-point" class="text-sm bg-white text-rose-600 border border-rose-200 hover:bg-rose-100 px-3 py-1 rounded transition-colors shadow-sm font-medium">ล้างกระดาน</button>
+                    </div>
+                    <div class="canvas-container w-full h-64 mb-4 relative" id="canvas-point"></div>
+                    <p class="text-sm text-gray-500 italic text-center">สัญลักษณ์: นิยมใช้จุดและตามด้วยชื่อ เช่น จุด A</p>
+                </div>
+
+                <!-- Line Content -->
+                <div id="content-line" class="content-section hidden">
+                    <h2 class="text-2xl font-bold mb-4 text-teal-700">เส้นตรง (Line)</h2>
+                    <p class="mb-4 text-gray-700 leading-relaxed">
+                        <strong>เส้นตรง</strong> มีความยาวไม่จำกัด และไม่มีความกว้าง ทอดยาวไปในสองทิศทางอย่างไม่มีที่สิ้นสุด 
+                        เราใช้ลูกศรที่ปลายทั้งสองข้างเพื่อแสดงว่าเส้นตรงนั้นยาวออกไปเรื่อยๆ
+                    </p>
+                    <div class="flex justify-between items-center mb-2 bg-rose-50 p-2 rounded-lg border border-rose-100">
+                        <span class="text-rose-600 text-sm font-semibold">👆 คลิก/แตะ 2 ครั้งเพื่อสร้างเส้นตรง หรือลากจุดสีแดงเพื่อปรับทิศทาง</span>
+                        <button id="clear-line" class="text-sm bg-white text-rose-600 border border-rose-200 hover:bg-rose-100 px-3 py-1 rounded transition-colors shadow-sm font-medium">ล้างกระดาน</button>
+                    </div>
+                    <div class="canvas-container w-full h-64 mb-4 relative" id="canvas-line"></div>
+                    <div class="bg-teal-50 p-4 rounded-lg">
+                        <p class="text-gray-700"><strong>สัญลักษณ์:</strong> เส้นตรงที่ลากผ่านจุด A และจุด B เขียนแทนด้วย <span class="font-bold">AB</span> (มีลูกศรสองข้างด้านบน)</p>
+                    </div>
+                </div>
+
+                <!-- Line Segment Content -->
+                <div id="content-segment" class="content-section hidden">
+                    <h2 class="text-2xl font-bold mb-4 text-teal-700">ส่วนของเส้นตรง (Line Segment)</h2>
+                    <p class="mb-4 text-gray-700 leading-relaxed">
+                        <strong>ส่วนของเส้นตรง</strong> คือส่วนหนึ่งของเส้นตรงที่มีจุดปลายสองจุด มีความยาวที่จำกัดสามารถวัดได้
+                    </p>
+                    <div class="flex justify-between items-center mb-2 bg-rose-50 p-2 rounded-lg border border-rose-100">
+                        <span class="text-rose-600 text-sm font-semibold">👆 คลิก/แตะ 2 ครั้งเพื่อสร้างส่วนของเส้นตรง หรือลากจุดสีแดงเพื่อขยับ</span>
+                        <button id="clear-segment" class="text-sm bg-white text-rose-600 border border-rose-200 hover:bg-rose-100 px-3 py-1 rounded transition-colors shadow-sm font-medium">ล้างกระดาน</button>
+                    </div>
+                    <div class="canvas-container w-full h-64 mb-4 relative" id="canvas-segment"></div>
+                    <div class="bg-teal-50 p-4 rounded-lg">
+                        <p class="text-gray-700"><strong>สัญลักษณ์:</strong> ส่วนของเส้นตรงที่มีจุดปลายที่ A และ B เขียนแทนด้วย <span class="font-bold">AB</span> (มีขีดตรงๆ ด้านบน ไม่มีลูกศร)</p>
+                    </div>
+                </div>
+
+                <!-- Ray Content -->
+                <div id="content-ray" class="content-section hidden">
+                    <h2 class="text-2xl font-bold mb-4 text-teal-700">รังสี (Ray)</h2>
+                    <p class="mb-4 text-gray-700 leading-relaxed">
+                        <strong>รังสี</strong> คือส่วนหนึ่งของเส้นตรงที่มีจุดปลายเพียงจุดเดียว และทอดยาวไปในอีกทิศทางหนึ่งอย่างไม่มีที่สิ้นสุด
+                    </p>
+                    <div class="flex justify-between items-center mb-2 bg-rose-50 p-2 rounded-lg border border-rose-100">
+                        <span class="text-rose-600 text-sm font-semibold">👆 คลิก 2 ครั้งเพื่อสร้างรังสี (คลิกแรกเป็นจุดปลาย) หรือลากจุดเพื่อขยับ</span>
+                        <button id="clear-ray" class="text-sm bg-white text-rose-600 border border-rose-200 hover:bg-rose-100 px-3 py-1 rounded transition-colors shadow-sm font-medium">ล้างกระดาน</button>
+                    </div>
+                    <div class="canvas-container w-full h-64 mb-4 relative" id="canvas-ray"></div>
+                    <div class="bg-teal-50 p-4 rounded-lg">
+                        <p class="text-gray-700"><strong>สัญลักษณ์:</strong> รังสีที่มีจุดปลายที่ A และผ่านจุด B เขียนแทนด้วย <span class="font-bold">AB</span> (มีลูกศรชี้ไปทางเดียวด้านบน ชี้จากจุดปลายไปยังอีกจุด)</p>
+                        <p class="text-red-500 mt-2 text-sm font-semibold">ข้อควรจำ: รังสี AB ไม่เหมือนกับ รังสี BA</p>
+                    </div>
+                </div>
+
+                <!-- Angle Content (Interactive) -->
+                <div id="content-angle" class="content-section hidden">
+                    <h2 class="text-2xl font-bold mb-4 text-teal-700">มุม (Angle) - <span class="text-rose-600 text-lg">ทดลองลากจุดสีแดงดูสิ!</span></h2>
+                    <p class="mb-4 text-gray-700 leading-relaxed">
+                        <strong>มุม</strong> เกิดจากรังสีสองเส้นที่มีจุดปลายร่วมกัน จุดปลายนี้เรียกว่า <strong>จุดยอดมุม</strong> และรังสีทั้งสองเรียกว่า <strong>แขนของมุม</strong>
+                    </p>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                        <div class="col-span-1 md:col-span-2">
+                            <div class="canvas-container w-full h-80 relative" id="canvas-angle"></div>
+                        </div>
+                        <div class="col-span-1 flex flex-col justify-center bg-teal-50 p-6 rounded-lg border border-teal-200 shadow-inner">
+                            <div class="text-center mb-6">
+                                <h3 class="text-lg text-teal-800 font-semibold mb-2">ขนาดของมุม:</h3>
+                                <div class="text-5xl font-bold text-teal-600" id="angle-value">0°</div>
+                            </div>
+                            <div class="text-center">
+                                <h3 class="text-lg text-teal-800 font-semibold mb-2">ประเภทของมุม:</h3>
+                                <div class="text-2xl font-bold text-rose-500 bg-rose-50 py-2 px-4 rounded-full inline-block border border-rose-200" id="angle-type">มุมแหลม</div>
+                            </div>
+                            <div class="mt-6 text-sm text-gray-600 text-center">
+                                <p><strong>สัญลักษณ์:</strong> มุม ABC เขียนแทนด้วย <strong>A<span style="text-decoration: overline;">B</span>C</strong> หรือ <strong>∠ABC</strong></p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white border border-gray-200 rounded-lg p-4">
+                        <h4 class="font-bold text-gray-700 mb-2">สรุปประเภทของมุม:</h4>
+                        <ul class="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm text-gray-600">
+                            <li><span class="font-semibold text-teal-600">มุมศูนย์:</span> 0°</li>
+                            <li><span class="font-semibold text-teal-600">มุมแหลม:</span> มากกว่า 0° แต่ไม่ถึง 90°</li>
+                            <li><span class="font-semibold text-teal-600">มุมฉาก:</span> 90° พอดี</li>
+                            <li><span class="font-semibold text-teal-600">มุมป้าน:</span> มากกว่า 90° แต่ไม่ถึง 180°</li>
+                            <li><span class="font-semibold text-teal-600">มุมตรง:</span> 180° พอดี</li>
+                            <li><span class="font-semibold text-teal-600">มุมกลับ:</span> มากกว่า 180° แต่ไม่ถึง 360°</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Sandbox Content -->
+                <div id="content-sandbox" class="content-section hidden">
+                    <h2 class="text-2xl font-bold mb-4 text-amber-600">✨ พื้นที่สร้างภาพเรขาคณิต (Sandbox)</h2>
+                    <p class="mb-4 text-gray-700 leading-relaxed">
+                        พื้นที่อิสระสำหรับนักเรียน! เลือกเครื่องมือด้านล่างเพื่อสร้างส่วนประกอบต่างๆ ประกอบกันเป็นรูปภาพเรขาคณิตตามจินตนาการของคุณ 
+                        <strong>จุดทุกจุดบนกระดานสามารถคลิกค้างแล้วลากเพื่อปรับแต่งได้ตลอดเวลา</strong>
+                    </p>
+                    
+                    <!-- Sandbox Toolbar -->
+                    <div class="flex flex-wrap gap-2 mb-4 bg-amber-50 p-3 rounded-lg border border-amber-200 shadow-sm items-center justify-between">
+                        <div class="flex flex-wrap gap-2" id="sandbox-tools">
+                            <button class="tool-btn active px-3 py-1.5 rounded-md border text-sm font-medium focus:outline-none bg-amber-500 text-white border-amber-600 shadow-sm" data-tool="point">📍 จุด</button>
+                            <button class="tool-btn px-3 py-1.5 rounded-md border text-sm font-medium focus:outline-none bg-white text-gray-700 border-gray-300 hover:bg-amber-100 transition-colors" data-tool="line">↔️ เส้นตรง</button>
+                            <button class="tool-btn px-3 py-1.5 rounded-md border text-sm font-medium focus:outline-none bg-white text-gray-700 border-gray-300 hover:bg-amber-100 transition-colors" data-tool="segment">➖ ส่วนของเส้นตรง</button>
+                            <button class="tool-btn px-3 py-1.5 rounded-md border text-sm font-medium focus:outline-none bg-white text-gray-700 border-gray-300 hover:bg-amber-100 transition-colors" data-tool="ray">➡️ รังสี</button>
+                            <button class="tool-btn px-3 py-1.5 rounded-md border text-sm font-medium focus:outline-none bg-white text-gray-700 border-gray-300 hover:bg-amber-100 transition-colors" data-tool="angle">📐 มุม</button>
+                        </div>
+                        <button id="clear-sandbox" class="text-sm bg-white text-rose-600 border border-rose-300 hover:bg-rose-100 px-3 py-1.5 rounded-md transition-colors shadow-sm font-bold">🗑️ ล้างกระดาน</button>
+                    </div>
+
+                    <div class="flex justify-between items-center mb-2">
+                        <span id="sandbox-hint" class="text-amber-700 text-sm font-semibold bg-white px-3 py-1 rounded-full border border-amber-200">👆 คลิกบนกระดานเพื่อวางจุด (ลากจุดเพื่อขยับได้)</span>
+                    </div>
+
+                    <div class="canvas-container w-full h-96 relative" id="canvas-sandbox" style="border-color: #fcd34d;"></div>
+                </div>
+            </div>
+        </main>
+        
+        <footer class="text-center text-teal-600 text-sm pb-8">
+            <p>สื่อการสอนคณิตศาสตร์ ม.1 - สร้างด้วยความตั้งใจเพื่อการเรียนรู้ที่สนุกสนาน</p>
+        </footer>
+    </div>
+
+    <script>
+        // Tab functionality
+        const tabBtns = document.querySelectorAll('.tab-btn');
+        const contentSections = document.querySelectorAll('.content-section');
+
+        tabBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Remove active class from all tabs and hide all content
+                tabBtns.forEach(t => t.classList.remove('active', 'bg-teal-600', 'text-white'));
+                tabBtns.forEach(t => t.classList.add('text-teal-700'));
+                contentSections.forEach(c => c.classList.add('hidden'));
+
+                // Add active class to clicked tab and show corresponding content
+                btn.classList.add('active', 'bg-teal-600', 'text-white');
+                btn.classList.remove('text-teal-700');
+                const targetId = btn.getAttribute('data-target');
+                document.getElementById(`content-${targetId}`).classList.remove('hidden');
+                
+                // Redraw specific canvas to ensure correct dimensions
+                if(targetId === 'angle') {
+                    drawAngleInteractive();
+                }
+            });
+        });
+
+        // Add arrow markers definitions to SVGs
+        function addMarkers(svg) {
+            const defs = svg.append("defs");
+            
+            // Arrowhead for end of line/ray
+            defs.append("marker")
+                .attr("id", "arrow")
+                .attr("viewBox", "0 0 10 10")
+                .attr("refX", 9)
+                .attr("refY", 5)
+                .attr("markerWidth", 8)
+                .attr("markerHeight", 8)
+                .attr("orient", "auto-start-reverse")
+                .append("path")
+                .attr("d", "M 0 0 L 10 5 L 0 10 z")
+                .attr("class", "arrow");
+        }
+
+        // ค่าคงที่สำหรับขนาด Canvas เพื่อให้พิกัดเสถียรทั้งในคอมพิวเตอร์และ iPad
+        const CANVAS_W = 800;
+        const CANVAS_H = 256;
+
+        function initPointCanvas() {
+            const container = d3.select("#canvas-point");
+            container.selectAll("*").remove();
+            
+            const svg = container.append("svg")
+                .attr("width", "100%")
+                .attr("height", "100%")
+                .attr("viewBox", `0 0 ${CANVAS_W} ${CANVAS_H}`)
+                .style("touch-action", "none");
+
+            let points = [{x: CANVAS_W / 2, y: CANVAS_H / 2, label: 'A'}];
+            let labelIndex = 1;
+
+            const drag = d3.drag()
+                .on("drag", (event, d) => {
+                    d.x = event.x; d.y = event.y;
+                    render();
+                });
+
+            function render() {
+                const pts = svg.selectAll("g.point-group").data(points);
+                const ptsEnter = pts.enter().append("g").attr("class", "point-group");
+                
+                ptsEnter.append("circle")
+                    .attr("class", "draggable-point")
+                    .attr("r", 8)
+                    .call(drag);
+                    
+                ptsEnter.append("text")
+                    .attr("class", "label")
+                    .style("pointer-events", "none")
+                    .attr("dx", 12)
+                    .attr("dy", 4);
+                    
+                const ptsMerge = ptsEnter.merge(pts);
+                ptsMerge.select("circle").attr("cx", d => d.x).attr("cy", d => d.y);
+                ptsMerge.select("text").attr("x", d => d.x).attr("y", d => d.y).text(d => d.label);
+                
+                pts.exit().remove();
+            }
+
+            svg.on("pointerdown", (event) => {
+                // ป้องกันไม่ให้สร้างจุดใหม่ถ้าคลิกโดนจุดเดิม
+                if(event.defaultPrevented || event.target.tagName === 'circle') return;
+                const [x, y] = d3.pointer(event);
+                points.push({x, y, label: String.fromCharCode(65 + (labelIndex++ % 26))});
+                render();
+            });
+
+            document.getElementById('clear-point').onclick = () => { points = []; labelIndex = 0; render(); };
+            render();
+        }
+
+        function initLineCanvas() {
+            const container = d3.select("#canvas-line");
+            container.selectAll("*").remove();
+            
+            const svg = container.append("svg")
+                .attr("width", "100%")
+                .attr("height", "100%")
+                .attr("viewBox", `0 0 ${CANVAS_W} ${CANVAS_H}`)
+                .style("touch-action", "none");
+                
+            addMarkers(svg);
+
+            let shapes = [{p1: {x: CANVAS_W/3, y: CANVAS_H/2, label: 'A'}, p2: {x: (CANVAS_W/3)*2, y: CANVAS_H/2, label: 'B'}}];
+            let tempPoint = null;
+            let labelIndex = 2;
+
+            const lineLayer = svg.append("g");
+            const tempLayer = svg.append("g");
+            const pointLayer = svg.append("g");
+
+            const drag = d3.drag().on("drag", (event, d) => {
+                d.x = event.x; d.y = event.y;
+                render();
+            });
+
+            // คำนวณความยาวเส้นให้ทะลุจอ
+            function getLineExtents(p1, p2) {
+                const dx = p2.x - p1.x, dy = p2.y - p1.y;
+                const dist = Math.sqrt(dx*dx + dy*dy);
+                if(dist === 0) return {x1: p1.x, y1: p1.y, x2: p2.x, y2: p2.y};
+                const ux = dx/dist, uy = dy/dist;
+                const len = 1500;
+                return { x1: p1.x - ux*len, y1: p1.y - uy*len, x2: p2.x + ux*len, y2: p2.y + uy*len };
+            }
+
+            function render() {
+                const lines = lineLayer.selectAll("line").data(shapes);
+                lines.enter().append("line").attr("class", "line").attr("marker-start", "url(#arrow)").attr("marker-end", "url(#arrow)")
+                    .merge(lines).each(function(d) {
+                        const ext = getLineExtents(d.p1, d.p2);
+                        d3.select(this).attr("x1", ext.x1).attr("y1", ext.y1).attr("x2", ext.x2).attr("y2", ext.y2);
+                    });
+                lines.exit().remove();
+
+                let allPoints = [];
+                shapes.forEach(s => { allPoints.push(s.p1, s.p2); });
+
+                const pts = pointLayer.selectAll("g.point-group").data(allPoints);
+                const ptsEnter = pts.enter().append("g").attr("class", "point-group");
+                ptsEnter.append("circle").attr("class", "draggable-point").attr("r", 8).call(drag);
+                ptsEnter.append("text").attr("class", "label").style("pointer-events", "none").attr("dx", 12).attr("dy", 4);
+                
+                const ptsMerge = ptsEnter.merge(pts);
+                ptsMerge.select("circle").attr("cx", d => d.x).attr("cy", d => d.y);
+                ptsMerge.select("text").attr("x", d => d.x).attr("y", d => d.y).text(d => d.label);
+                pts.exit().remove();
+
+                tempLayer.selectAll("*").remove();
+                if (tempPoint) {
+                    tempLayer.append("circle").attr("cx", tempPoint.x).attr("cy", tempPoint.y).attr("r", 5).style("fill", "#64748b");
+                }
+            }
+
+            svg.on("pointerdown", (event) => {
+                if(event.defaultPrevented || event.target.tagName === 'circle') return;
+                const [x, y] = d3.pointer(event);
+                if (!tempPoint) {
+                    tempPoint = {x, y, label: String.fromCharCode(65 + (labelIndex++ % 26))};
+                } else {
+                    shapes.push({p1: tempPoint, p2: {x, y, label: String.fromCharCode(65 + (labelIndex++ % 26))}});
+                    tempPoint = null;
+                }
+                render();
+            });
+
+            svg.on("pointermove", (event) => {
+                if(tempPoint) {
+                    const [x, y] = d3.pointer(event);
+                    tempLayer.selectAll("line.preview").remove();
+                    tempLayer.append("line").attr("class", "line preview").style("stroke-dasharray", "4,4").style("opacity", 0.5)
+                        .attr("x1", tempPoint.x).attr("y1", tempPoint.y).attr("x2", x).attr("y2", y);
+                }
+            });
+
+            document.getElementById('clear-line').onclick = () => { shapes = []; tempPoint = null; labelIndex = 0; render(); };
+            render();
+        }
+
+        function initSegmentCanvas() {
+            const container = d3.select("#canvas-segment");
+            container.selectAll("*").remove();
+            
+            const svg = container.append("svg")
+                .attr("width", "100%")
+                .attr("height", "100%")
+                .attr("viewBox", `0 0 ${CANVAS_W} ${CANVAS_H}`)
+                .style("touch-action", "none");
+
+            let shapes = [{p1: {x: CANVAS_W/4, y: CANVAS_H/2, label: 'A'}, p2: {x: (CANVAS_W/4)*3, y: CANVAS_H/2, label: 'B'}}];
+            let tempPoint = null;
+            let labelIndex = 2;
+
+            const lineLayer = svg.append("g");
+            const tempLayer = svg.append("g");
+            const pointLayer = svg.append("g");
+
+            const drag = d3.drag().on("drag", (event, d) => {
+                d.x = event.x; d.y = event.y;
+                render();
+            });
+
+            function render() {
+                const lines = lineLayer.selectAll("line").data(shapes);
+                lines.enter().append("line").attr("class", "line")
+                    .merge(lines)
+                    .attr("x1", d => d.p1.x).attr("y1", d => d.p1.y)
+                    .attr("x2", d => d.p2.x).attr("y2", d => d.p2.y);
+                lines.exit().remove();
+
+                let allPoints = [];
+                shapes.forEach(s => { allPoints.push(s.p1, s.p2); });
+
+                const pts = pointLayer.selectAll("g.point-group").data(allPoints);
+                const ptsEnter = pts.enter().append("g").attr("class", "point-group");
+                ptsEnter.append("circle").attr("class", "draggable-point").attr("r", 8).call(drag);
+                ptsEnter.append("text").attr("class", "label").style("pointer-events", "none").attr("dx", 12).attr("dy", 4);
+                
+                const ptsMerge = ptsEnter.merge(pts);
+                ptsMerge.select("circle").attr("cx", d => d.x).attr("cy", d => d.y);
+                ptsMerge.select("text").attr("x", d => d.x).attr("y", d => d.y).text(d => d.label);
+                pts.exit().remove();
+
+                tempLayer.selectAll("*").remove();
+                if (tempPoint) {
+                    tempLayer.append("circle").attr("cx", tempPoint.x).attr("cy", tempPoint.y).attr("r", 5).style("fill", "#64748b");
+                }
+            }
+
+            svg.on("pointerdown", (event) => {
+                if(event.defaultPrevented || event.target.tagName === 'circle') return;
+                const [x, y] = d3.pointer(event);
+                if (!tempPoint) {
+                    tempPoint = {x, y, label: String.fromCharCode(65 + (labelIndex++ % 26))};
+                } else {
+                    shapes.push({p1: tempPoint, p2: {x, y, label: String.fromCharCode(65 + (labelIndex++ % 26))}});
+                    tempPoint = null;
+                }
+                render();
+            });
+
+            svg.on("pointermove", (event) => {
+                if(tempPoint) {
+                    const [x, y] = d3.pointer(event);
+                    tempLayer.selectAll("line.preview").remove();
+                    tempLayer.append("line").attr("class", "line preview").style("stroke-dasharray", "4,4").style("opacity", 0.5)
+                        .attr("x1", tempPoint.x).attr("y1", tempPoint.y).attr("x2", x).attr("y2", y);
+                }
+            });
+
+            document.getElementById('clear-segment').onclick = () => { shapes = []; tempPoint = null; labelIndex = 0; render(); };
+            render();
+        }
+
+        function initRayCanvas() {
+            const container = d3.select("#canvas-ray");
+            container.selectAll("*").remove();
+            
+            const svg = container.append("svg")
+                .attr("width", "100%")
+                .attr("height", "100%")
+                .attr("viewBox", `0 0 ${CANVAS_W} ${CANVAS_H}`)
+                .style("touch-action", "none");
+                
+            addMarkers(svg);
+
+            let shapes = [{p1: {x: CANVAS_W/4, y: CANVAS_H/2, label: 'A'}, p2: {x: CANVAS_W/2, y: CANVAS_H/2, label: 'B'}}];
+            let tempPoint = null;
+            let labelIndex = 2;
+
+            const lineLayer = svg.append("g");
+            const tempLayer = svg.append("g");
+            const pointLayer = svg.append("g");
+
+            const drag = d3.drag().on("drag", (event, d) => {
+                d.x = event.x; d.y = event.y;
+                render();
+            });
+
+            // คำนวณความยาวรังสี
+            function getRayExtents(p1, p2) {
+                const dx = p2.x - p1.x, dy = p2.y - p1.y;
+                const dist = Math.sqrt(dx*dx + dy*dy);
+                if(dist === 0) return {x1: p1.x, y1: p1.y, x2: p2.x, y2: p2.y};
+                const ux = dx/dist, uy = dy/dist;
+                const len = 1500;
+                return { x1: p1.x, y1: p1.y, x2: p2.x + ux*len, y2: p2.y + uy*len };
+            }
+
+            function render() {
+                const lines = lineLayer.selectAll("line").data(shapes);
+                lines.enter().append("line").attr("class", "line").attr("marker-end", "url(#arrow)")
+                    .merge(lines).each(function(d) {
+                        const ext = getRayExtents(d.p1, d.p2);
+                        d3.select(this).attr("x1", ext.x1).attr("y1", ext.y1).attr("x2", ext.x2).attr("y2", ext.y2);
+                    });
+                lines.exit().remove();
+
+                let allPoints = [];
+                shapes.forEach(s => { allPoints.push(s.p1, s.p2); });
+
+                const pts = pointLayer.selectAll("g.point-group").data(allPoints);
+                const ptsEnter = pts.enter().append("g").attr("class", "point-group");
+                ptsEnter.append("circle").attr("class", "draggable-point").attr("r", 8).call(drag);
+                ptsEnter.append("text").attr("class", "label").style("pointer-events", "none").attr("dx", 12).attr("dy", 4);
+                
+                const ptsMerge = ptsEnter.merge(pts);
+                ptsMerge.select("circle").attr("cx", d => d.x).attr("cy", d => d.y);
+                ptsMerge.select("text").attr("x", d => d.x).attr("y", d => d.y).text(d => d.label);
+                pts.exit().remove();
+
+                tempLayer.selectAll("*").remove();
+                if (tempPoint) {
+                    tempLayer.append("circle").attr("cx", tempPoint.x).attr("cy", tempPoint.y).attr("r", 5).style("fill", "#64748b");
+                }
+            }
+
+            svg.on("pointerdown", (event) => {
+                if(event.defaultPrevented || event.target.tagName === 'circle') return;
+                const [x, y] = d3.pointer(event);
+                if (!tempPoint) {
+                    tempPoint = {x, y, label: String.fromCharCode(65 + (labelIndex++ % 26))};
+                } else {
+                    shapes.push({p1: tempPoint, p2: {x, y, label: String.fromCharCode(65 + (labelIndex++ % 26))}});
+                    tempPoint = null;
+                }
+                render();
+            });
+
+            svg.on("pointermove", (event) => {
+                if(tempPoint) {
+                    const [x, y] = d3.pointer(event);
+                    tempLayer.selectAll("line.preview").remove();
+                    tempLayer.append("line").attr("class", "line preview").style("stroke-dasharray", "4,4").style("opacity", 0.5)
+                        .attr("x1", tempPoint.x).attr("y1", tempPoint.y).attr("x2", x).attr("y2", y);
+                }
+            });
+
+            document.getElementById('clear-ray').onclick = () => { shapes = []; tempPoint = null; labelIndex = 0; render(); };
+            render();
+        }
+
+        // --- Interactive Angle ---
+        function drawAngleInteractive() {
+            const container = document.getElementById('canvas-angle');
+            if(container.clientWidth === 0) return; // Prevent drawing if hidden
+            
+            container.innerHTML = '';
+            const width = container.clientWidth;
+            const height = container.clientHeight;
+
+            const svg = d3.select("#canvas-angle")
+                .append("svg")
+                .attr("width", "100%")
+                .attr("height", "100%")
+                .attr("viewBox", `0 0 ${width} ${height}`);
+                
+            addMarkers(svg);
+
+            // Origin (Vertex B)
+            const origin = { x: width / 2, y: height / 2 + 50 };
+            
+            // Fixed Point C (0 degrees reference)
+            const radius = Math.min(width, height) * 0.35;
+            const ptC = { x: origin.x + radius, y: origin.y };
+            
+            // Draggable Point A (initial state at ~60 degrees)
+            let currentAngle = 60;
+            let ptA = getPointFromAngle(currentAngle, radius, origin);
+
+            // Group for dynamic elements
+            const g = svg.append("g");
+
+            // Arc for angle indicator
+            const arcPath = g.append("path")
+                .attr("class", "angle-arc");
+
+            // Rays
+            const rayC = g.append("line")
+                .attr("class", "line")
+                .attr("marker-end", "url(#arrow)");
+                
+            const rayA = g.append("line")
+                .attr("class", "line")
+                .attr("marker-end", "url(#arrow)");
+
+            // Points
+            g.append("circle").attr("cx", origin.x).attr("cy", origin.y).attr("r", 6).attr("class", "point"); // B
+            g.append("circle").attr("cx", ptC.x).attr("cy", ptC.y).attr("r", 6).attr("class", "point"); // C
+            
+            // Draggable handle
+            const handleA = g.append("circle")
+                .attr("class", "draggable-point")
+                .attr("r", 8);
+
+            // Labels
+            g.append("text").attr("x", origin.x - 20).attr("y", origin.y + 20).attr("class", "label").text("B");
+            g.append("text").attr("x", ptC.x + 10).attr("y", ptC.y + 20).attr("class", "label").text("C");
+            const labelA = g.append("text").attr("class", "label").text("A");
+
+            // Helper function to calculate point based on angle
+            function getPointFromAngle(degrees, r, center) {
+                const radians = (degrees - 90) * (Math.PI / 180); // Adjusting so 0 is right, counter-clockwise
+                // Standard math coordinates vs SVG coordinates (y is flipped)
+                const radStd = degrees * (Math.PI / 180);
+                return {
+                    x: center.x + r * Math.cos(radStd),
+                    y: center.y - r * Math.sin(radStd) // Minus because SVG y goes down
+                };
+            }
+
+            // Function to calculate angle from coordinates relative to origin
+            function getAngleFromCoords(x, y, center) {
+                const dx = x - center.x;
+                const dy = center.y - y; // Flipped y
+                let theta = Math.atan2(dy, dx) * (180 / Math.PI);
+                if (theta < 0) theta += 360;
+                return theta;
+            }
+
+            // Update function
+            function updateAngle(angleDeg) {
+                // Constrain angle between 0 and 360
+                angleDeg = Math.max(0, Math.min(360, angleDeg));
+                
+                // Calculate new position for A
+                ptA = getPointFromAngle(angleDeg, radius, origin);
+                
+                // Extension for ray arrows
+                const extRayC = getPointFromAngle(0, radius * 1.5, origin);
+                const extRayA = getPointFromAngle(angleDeg, radius * 1.5, origin);
+
+                // Update lines
+                rayC.attr("x1", origin.x).attr("y1", origin.y).attr("x2", extRayC.x).attr("y2", extRayC.y);
+                rayA.attr("x1", origin.x).attr("y1", origin.y).attr("x2", extRayA.x).attr("y2", extRayA.y);
+
+                // Update draggable point and its label
+                handleA.attr("cx", ptA.x).attr("cy", ptA.y);
+                
+                // Position label A slightly outside
+                const labelPosA = getPointFromAngle(angleDeg, radius + 20, origin);
+                labelA.attr("x", labelPosA.x - 5).attr("y", labelPosA.y + 5);
+
+                // Draw Arc
+                const arcRadius = 40;
+                const startAngle = 0;
+                const endAngle = angleDeg * (Math.PI / 180);
+                
+                // D3 arc generator
+                const arcGen = d3.arc()
+                    .innerRadius(0)
+                    .outerRadius(arcRadius)
+                    .startAngle(Math.PI / 2) // Start pointing right (SVG coord system adjustments)
+                    .endAngle(Math.PI / 2 - endAngle); // Go counter-clockwise
+
+                arcPath
+                    .attr("transform", `translate(${origin.x},${origin.y})`)
+                    .attr("d", arcGen());
+
+                // Update UI text
+                updateUIText(Math.round(angleDeg));
+            }
+
+            function updateUIText(angle) {
+                const valEl = document.getElementById('angle-value');
+                const typeEl = document.getElementById('angle-type');
+                
+                valEl.innerText = `${angle}°`;
+                
+                let typeName = "";
+                let typeColorClass = "";
+                let typeBgClass = "";
+                let typeBorderClass = "";
+
+                if (angle === 0) {
+                    typeName = "มุมศูนย์";
+                    typeColorClass = "text-gray-500"; typeBgClass = "bg-gray-100"; typeBorderClass = "border-gray-200";
+                } else if (angle > 0 && angle < 90) {
+                    typeName = "มุมแหลม";
+                    typeColorClass = "text-emerald-500"; typeBgClass = "bg-emerald-50"; typeBorderClass = "border-emerald-200";
+                } else if (angle === 90) {
+                    typeName = "มุมฉาก";
+                    typeColorClass = "text-blue-500"; typeBgClass = "bg-blue-50"; typeBorderClass = "border-blue-200";
+                    
+                    // Special draw for right angle (square symbol)
+                    arcPath.attr("d", null); // Remove curve
+                    const size = 30;
+                    const pathD = `M ${origin.x + size} ${origin.y} 
+                                   L ${origin.x + size} ${origin.y - size} 
+                                   L ${origin.x} ${origin.y - size}`;
+                    
+                    // Create or update right angle marker
+                    let rightAngle = g.select(".right-angle");
+                    if (rightAngle.empty()) {
+                        g.append("path")
+                            .attr("class", "right-angle angle-arc")
+                            .attr("fill", "none")
+                            .attr("d", pathD);
+                    } else {
+                        rightAngle.attr("d", pathD).style("display", "block");
+                    }
+                } else if (angle > 90 && angle < 180) {
+                    typeName = "มุมป้าน";
+                    typeColorClass = "text-amber-500"; typeBgClass = "bg-amber-50"; typeBorderClass = "border-amber-200";
+                } else if (angle === 180) {
+                    typeName = "มุมตรง";
+                    typeColorClass = "text-indigo-500"; typeBgClass = "bg-indigo-50"; typeBorderClass = "border-indigo-200";
+                } else if (angle > 180 && angle < 360) {
+                    typeName = "มุมกลับ";
+                    typeColorClass = "text-rose-500"; typeBgClass = "bg-rose-50"; typeBorderClass = "border-rose-200";
+                } else if (angle === 360) {
+                    typeName = "มุมรอบจุดศูนย์กลาง";
+                    typeColorClass = "text-purple-500"; typeBgClass = "bg-purple-50"; typeBorderClass = "border-purple-200";
+                }
+
+                typeEl.innerText = typeName;
+                typeEl.className = `text-2xl font-bold py-2 px-4 rounded-full inline-block border ${typeColorClass} ${typeBgClass} ${typeBorderClass}`;
+
+                // Hide right angle marker if not 90
+                if (angle !== 90) {
+                    g.select(".right-angle").style("display", "none");
+                }
+            }
+
+            // Drag behavior
+            const drag = d3.drag()
+                .on("drag", (event) => {
+                    // Prevent default touch behavior
+                    event.sourceEvent.preventDefault();
+                    
+                    // Calculate angle based on pointer position relative to origin
+                    let newAngle = getAngleFromCoords(event.x, event.y, origin);
+                    
+                    // Add snapping to common angles (0, 90, 180, 270, 360)
+                    const snapThreshold = 5;
+                    const snapAngles = [0, 90, 180, 270, 360];
+                    for (let snap of snapAngles) {
+                        if (Math.abs(newAngle - snap) < snapThreshold) {
+                            newAngle = snap;
+                            break;
+                        }
+                        // Handle wrap around for 0/360
+                        if (snap === 0 && Math.abs(newAngle - 360) < snapThreshold) {
+                             newAngle = 0;
+                             break;
+                        }
+                    }
+
+                    updateAngle(newAngle);
+                });
+
+            handleA.call(drag);
+
+            // Initial render
+            updateAngle(currentAngle);
+        }
+
+        // Setup initial view
+        window.onload = function() {
+            // โหลดระบบ Interactive ทั้งหมดเมื่อเปิดหน้าเว็บ
+            initPointCanvas();
+            initLineCanvas();
+            initSegmentCanvas();
+            initRayCanvas();
+            initSandboxCanvas(); // โหลดกระดาน Sandbox
+            
+            // รอวาดมุม Interactive เมื่อแท็บแสดงผล
+            drawAngleInteractive();
+        };
+
+        // --- Sandbox Implementation ---
+        function initSandboxCanvas() {
+            const container = d3.select("#canvas-sandbox");
+            container.selectAll("*").remove();
+            
+            const SB_CANVAS_H = 384; // ความสูงกระดานสร้างภาพให้ใหญ่ขึ้น (h-96)
+
+            const svg = container.append("svg")
+                .attr("width", "100%")
+                .attr("height", "100%")
+                .attr("viewBox", `0 0 ${CANVAS_W} ${SB_CANVAS_H}`)
+                .style("touch-action", "none");
+                
+            addMarkers(svg);
+
+            let elements = []; // เก็บรูปร่างทั้งหมด
+            let tempPoints = []; // เก็บจุดชั่วคราวระหว่างวาด
+            let currentTool = 'point';
+            let labelIndex = 0;
+
+            const toolBtns = document.querySelectorAll('.tool-btn');
+            const hintEl = document.getElementById('sandbox-hint');
+
+            const hints = {
+                'point': '👆 คลิกบนกระดานเพื่อวางจุด (ลากเพื่อขยับได้)',
+                'line': '👆 คลิก 2 ครั้ง เพื่อสร้างเส้นตรง (จุดที่ 1 ผ่านไปยัง จุดที่ 2)',
+                'segment': '👆 คลิก 2 ครั้ง เพื่อสร้างส่วนของเส้นตรง',
+                'ray': '👆 คลิก 2 ครั้ง (จุดแรกคือจุดปลาย รังสีพุ่งไปทางจุดที่สอง)',
+                'angle': '👆 คลิก 3 ครั้ง: 1) จุดยอดมุม  2) แขนที่หนึ่ง  3) แขนที่สอง'
+            };
+
+            // จัดการคลิกเปลี่ยนเครื่องมือ
+            toolBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    toolBtns.forEach(t => {
+                        t.classList.remove('bg-amber-500', 'text-white', 'border-amber-600', 'shadow-sm');
+                        t.classList.add('bg-white', 'text-gray-700', 'border-gray-300');
+                    });
+                    btn.classList.remove('bg-white', 'text-gray-700', 'border-gray-300');
+                    btn.classList.add('bg-amber-500', 'text-white', 'border-amber-600', 'shadow-sm');
+                    
+                    currentTool = btn.getAttribute('data-tool');
+                    hintEl.innerText = hints[currentTool];
+                    tempPoints = []; // เคลียร์สถานะการวาดค้างไว้
+                    render();
+                });
+            });
+
+            // เลเยอร์สำหรับแยกการวาด
+            const arcLayer = svg.append("g");
+            const lineLayer = svg.append("g");
+            const tempLayer = svg.append("g");
+            const pointLayer = svg.append("g");
+
+            // ระบบลากจุดร่วม
+            const drag = d3.drag().on("drag", (event, d) => {
+                d.x = event.x; d.y = event.y;
+                render();
+            });
+
+            // คำนวณความยาวเส้น
+            function getExtents(p1, p2, type) {
+                const dx = p2.x - p1.x, dy = p2.y - p1.y;
+                const dist = Math.sqrt(dx*dx + dy*dy);
+                if(dist === 0) return {x1: p1.x, y1: p1.y, x2: p2.x, y2: p2.y};
+                const ux = dx/dist, uy = dy/dist;
+                const len = 1500;
+                
+                if (type === 'line') {
+                    return { x1: p1.x - ux*len, y1: p1.y - uy*len, x2: p2.x + ux*len, y2: p2.y + uy*len };
+                } else if (type === 'ray') {
+                    return { x1: p1.x, y1: p1.y, x2: p2.x + ux*len, y2: p2.y + uy*len };
+                }
+                return { x1: p1.x, y1: p1.y, x2: p2.x, y2: p2.y }; // segment
+            }
+
+            // คำนวณวาดส่วนโค้งมุม
+            function drawAngleArc(angleEl) {
+                const v = angleEl.vertex;
+                const p1 = angleEl.p1;
+                const p2 = angleEl.p2;
+
+                const a1 = Math.atan2(p1.y - v.y, p1.x - v.x);
+                const a2 = Math.atan2(p2.y - v.y, p2.x - v.x);
+                
+                let diff = a2 - a1;
+                if (diff < 0) diff += 2 * Math.PI;
+
+                const r = 35; // รัศมีส่วนโค้ง
+                const startX = v.x + r * Math.cos(a1);
+                const startY = v.y + r * Math.sin(a1);
+                const endX = v.x + r * Math.cos(a2);
+                const endY = v.y + r * Math.sin(a2);
+
+                const largeArcFlag = diff > Math.PI ? 1 : 0;
+                return `M ${startX} ${startY} A ${r} ${r} 0 ${largeArcFlag} 1 ${endX} ${endY}`;
+            }
+
+            function render() {
+                lineLayer.selectAll("*").remove();
+                arcLayer.selectAll("*").remove();
+                tempLayer.selectAll("*").remove();
+                
+                let allPoints = [];
+
+                // วาดรูปร่างทั้งหมด
+                elements.forEach(el => {
+                    if (el.type === 'point') {
+                        allPoints.push(el.p);
+                    } 
+                    else if (el.type === 'segment' || el.type === 'line' || el.type === 'ray') {
+                        allPoints.push(el.p1, el.p2);
+                        const ext = getExtents(el.p1, el.p2, el.type);
+                        const line = lineLayer.append("line").attr("class", "line")
+                            .attr("x1", ext.x1).attr("y1", ext.y1).attr("x2", ext.x2).attr("y2", ext.y2);
+                        
+                        if (el.type === 'line') line.attr("marker-start", "url(#arrow)").attr("marker-end", "url(#arrow)");
+                        if (el.type === 'ray') line.attr("marker-end", "url(#arrow)");
+                    }
+                    else if (el.type === 'angle') {
+                        allPoints.push(el.vertex, el.p1, el.p2);
+                        
+                        // วาดแขนทั้งสองข้าง (รังสี)
+                        const ext1 = getExtents(el.vertex, el.p1, 'ray');
+                        lineLayer.append("line").attr("class", "line").attr("marker-end", "url(#arrow)")
+                            .attr("x1", ext1.x1).attr("y1", ext1.y1).attr("x2", ext1.x2).attr("y2", ext1.y2);
+                            
+                        const ext2 = getExtents(el.vertex, el.p2, 'ray');
+                        lineLayer.append("line").attr("class", "line").attr("marker-end", "url(#arrow)")
+                            .attr("x1", ext2.x1).attr("y1", ext2.y1).attr("x2", ext2.x2).attr("y2", ext2.y2);
+
+                        // วาดส่วนโค้งมุม
+                        arcLayer.append("path")
+                            .attr("class", "angle-arc")
+                            .attr("fill", "rgba(245, 158, 11, 0.2)")
+                            .attr("stroke", "#f59e0b")
+                            .attr("d", drawAngleArc(el));
+                    }
+                });
+
+                // วาดจุดควบคุมทั้งหมด (เพื่อให้ลากได้)
+                const pts = pointLayer.selectAll("g.point-group").data(allPoints);
+                const ptsEnter = pts.enter().append("g").attr("class", "point-group");
+                ptsEnter.append("circle").attr("class", "draggable-point").attr("r", 8).call(drag);
+                ptsEnter.append("text").attr("class", "label").style("pointer-events", "none").attr("dx", 12).attr("dy", 4);
+                
+                const ptsMerge = ptsEnter.merge(pts);
+                ptsMerge.select("circle").attr("cx", d => d.x).attr("cy", d => d.y);
+                ptsMerge.select("text").attr("x", d => d.x).attr("y", d => d.y).text(d => d.label);
+                pts.exit().remove();
+
+                // วาดพรีวิวระหว่างที่นักเรียนกำลังคลิก
+                if (tempPoints.length > 0) {
+                    tempPoints.forEach(p => {
+                        tempLayer.append("circle").attr("cx", p.x).attr("cy", p.y).attr("r", 5).style("fill", "#64748b");
+                    });
+
+                    if (currentTool === 'angle' && tempPoints.length === 2) {
+                        tempLayer.append("line").attr("class", "line preview").style("stroke-dasharray", "4,4").style("opacity", 0.5)
+                            .attr("x1", tempPoints[0].x).attr("y1", tempPoints[0].y).attr("x2", tempPoints[1].x).attr("y2", tempPoints[1].y);
+                    }
+                }
+            }
+
+            // ระบบรับการสัมผัส/คลิกเพื่อสร้าง
+            svg.on("pointerdown", (event) => {
+                if(event.defaultPrevented || event.target.tagName === 'circle') return;
+                const [x, y] = d3.pointer(event);
+                const newPoint = {x, y, label: String.fromCharCode(65 + (labelIndex++ % 26))};
+
+                if (currentTool === 'point') {
+                    elements.push({ type: 'point', p: newPoint });
+                } 
+                else if (currentTool === 'line' || currentTool === 'segment' || currentTool === 'ray') {
+                    if (tempPoints.length === 0) {
+                        tempPoints.push(newPoint);
+                    } else {
+                        elements.push({ type: currentTool, p1: tempPoints[0], p2: newPoint });
+                        tempPoints = [];
+                    }
+                }
+                else if (currentTool === 'angle') {
+                    if (tempPoints.length < 2) {
+                        tempPoints.push(newPoint);
+                    } else {
+                        elements.push({ type: 'angle', vertex: tempPoints[0], p1: tempPoints[1], p2: newPoint });
+                        tempPoints = [];
+                    }
+                }
+                render();
+            });
+
+            // ระบบแสดงเส้นพรีวิววิ่งตามเมาส์/นิ้ว
+            svg.on("pointermove", (event) => {
+                if(tempPoints.length > 0) {
+                    const [x, y] = d3.pointer(event);
+                    tempLayer.selectAll("line.preview").remove();
+                    
+                    if (currentTool === 'line' || currentTool === 'segment' || currentTool === 'ray') {
+                        tempLayer.append("line").attr("class", "line preview").style("stroke-dasharray", "4,4").style("opacity", 0.5)
+                            .attr("x1", tempPoints[0].x).attr("y1", tempPoints[0].y).attr("x2", x).attr("y2", y);
+                    }
+                    else if (currentTool === 'angle') {
+                        if (tempPoints.length === 1) {
+                            tempLayer.append("line").attr("class", "line preview").style("stroke-dasharray", "4,4").style("opacity", 0.5)
+                                .attr("x1", tempPoints[0].x).attr("y1", tempPoints[0].y).attr("x2", x).attr("y2", y);
+                        } else if (tempPoints.length === 2) {
+                            tempLayer.append("line").attr("class", "line preview").style("stroke-dasharray", "4,4").style("opacity", 0.5)
+                                .attr("x1", tempPoints[0].x).attr("y1", tempPoints[0].y).attr("x2", tempPoints[1].x).attr("y2", tempPoints[1].y);
+                            tempLayer.append("line").attr("class", "line preview").style("stroke-dasharray", "4,4").style("opacity", 0.5)
+                                .attr("x1", tempPoints[0].x).attr("y1", tempPoints[0].y).attr("x2", x).attr("y2", y);
+                        }
+                    }
+                }
+            });
+
+            document.getElementById('clear-sandbox').onclick = () => { 
+                elements = []; 
+                tempPoints = []; 
+                labelIndex = 0; 
+                render(); 
+            };
+            
+            render();
+        }
+    </script>
+</body>
+</html>
